@@ -22,6 +22,6 @@ public class Tournament
 
     public Tournament() {
         this.startDate = LocalDateTime.now();
-        this.startDate = LocalDateTime.now();
+        this.endDate = LocalDateTime.now();
     }
 }

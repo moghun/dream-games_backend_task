@@ -26,14 +26,14 @@ public class TournamentRankInGroup {
     @JoinColumn(name = "tournamentGroupID", referencedColumnName = "ID")
     private TournamentGroup group;
     private Boolean claimStatus;
-    private Integer currentScore;
+    private Integer finalScore;
     private Integer finalRank;
 
-    public TournamentRankInGroup(User user, TournamentGroup group, Boolean claimStatus, Integer currentScore) {
+    public TournamentRankInGroup(User user, TournamentGroup group, Boolean claimStatus, Integer finalScore) {
         this.user = user;
         this.group = group;
         this.claimStatus = claimStatus;
-        this.currentScore = currentScore;
+        this.finalScore = finalScore;
         this.finalRank = -1;
     }
 }

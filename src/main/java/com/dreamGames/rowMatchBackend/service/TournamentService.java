@@ -9,6 +9,7 @@ import com.dreamGames.rowMatchBackend.repository.TournamentRankInGroupRepository
 import com.dreamGames.rowMatchBackend.repository.TournamentRepository;
 import com.dreamGames.rowMatchBackend.requests.UserTuple;
 import com.dreamGames.rowMatchBackend.responses.CurrentLeaderboardStatusResponse;
+import com.dreamGames.rowMatchBackend.responses.CurrentRankResponse;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,17 @@ public class TournamentService implements TournamentServiceInterface{
     private ZSetOperations<String, UserTuple> zSetOperations;
 
     @Override
-    public Tournament getLatestTournement() {
+    public Optional<Tournament> getTournament(Long id) {
+        return tournamentRepository.findById(id);
+    }
+
+    @Override
+    public Optional<TournamentGroup> getGroup(Long id) {
+        return tournamentGroupRepository.findById(id);
+    }
+
+    @Override
+    public Tournament getLatestTournament() {
         Optional<Tournament> lastTournament = tournamentRepository.findFirstByOrderByIdDesc();
 
         if (lastTournament.isPresent() == true) {
@@ -122,5 +133,32 @@ public class TournamentService implements TournamentServiceInterface{
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public CurrentRankResponse getRankInGivenTournament(Tournament tournament, User user) {
+        Optional<TournamentRankInGroup> ranking = tournamentRankInGroupRepository.findByUserAndGroup_Tournament(user, tournament);
+
+        if (ranking.isEmpty() == true)
+            throw new RuntimeException("Did not attend to a tournament!");
+
+        Long group = ranking.get().getGroup().getID();
+        Long rank = zSetOperations.reverseRank(group.toString(), new UserTuple(user.getID(), user.getUsername()));
+
+        return new CurrentRankResponse(group, rank.intValue());
+    }
+
+    @Override
+    public Boolean updateUserActiveTournamentRanking(User user) {
+        Tournament tournament = getLatestTournament();
+        Optional<TournamentRankInGroup> getRanking = tournamentRankInGroupRepository.findByUserAndGroup_Tournament(user, tournament);
+        if (getRanking.isEmpty())
+            throw new RuntimeException("No active tournaments!");
+
+        TournamentRankInGroup ranking = getRanking.get();
+        ranking.setFinalScore(ranking.getFinalScore() + 1);
+        putLeaderboard(ranking.getGroup(), user, ranking.getFinalScore());
+
+        tournamentRankInGroupRepository.save(ranking);
+        return true;
+    }
 
 }

@@ -3,7 +3,6 @@ package com.dreamGames.rowMatchBackend.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -11,7 +10,6 @@ import java.time.LocalDateTime;
 @Table(name = "tournaments")
 @Entity
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
 public class Tournament
@@ -24,6 +22,6 @@ public class Tournament
 
     public Tournament() {
         this.startDate = LocalDateTime.now();
-        this.startDate = LocalDateTime.now();
+        this.endDate = LocalDateTime.now();
     }
 }

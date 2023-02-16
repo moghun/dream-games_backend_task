@@ -28,4 +28,12 @@ public class User {
         this.currentLevel = 1;
         this.currentCoins = 5000;
     }
+
+    public User(User user) {
+        this.ID = user.getID();
+        this.username = user.getUsername();
+        this.password = user.getPassword();
+        this.currentCoins = user.getCurrentCoins();
+        this.currentLevel = user.getCurrentLevel();
+    }
 }

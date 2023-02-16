@@ -13,5 +13,4 @@ public interface UserProgressServiceInterface {
 
     Optional<User> oneLevelUserProgress(User user);
 
-    Optional<User> tournamentUserProgress(User user);
 }

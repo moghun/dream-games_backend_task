@@ -7,9 +7,11 @@ import com.dreamGames.rowMatchBackend.model.User;
 import com.dreamGames.rowMatchBackend.repository.TournamentGroupRepository;
 import com.dreamGames.rowMatchBackend.repository.TournamentRankInGroupRepository;
 import com.dreamGames.rowMatchBackend.repository.TournamentRepository;
+import com.dreamGames.rowMatchBackend.repository.UserRepository;
 import com.dreamGames.rowMatchBackend.requests.UserTuple;
 import com.dreamGames.rowMatchBackend.responses.CurrentLeaderboardStatusResponse;
 import com.dreamGames.rowMatchBackend.responses.CurrentRankResponse;
+import com.dreamGames.rowMatchBackend.responses.OneLevelProgressResponse;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,16 +20,15 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
 @Service
 @RequiredArgsConstructor
 public class TournamentService implements TournamentServiceInterface{
-    private final UserProgressService progressService;
+
+    private final UserRepository userRepository;
     private final TournamentRepository tournamentRepository;
     private final TournamentGroupRepository tournamentGroupRepository;
     private final TournamentRankInGroupRepository tournamentRankInGroupRepository;
@@ -122,7 +123,7 @@ public class TournamentService implements TournamentServiceInterface{
     }
 
     @Override
-    public List<?> listLeaderboard(TournamentGroup group) {
+    public List<CurrentLeaderboardStatusResponse> listLeaderboard(TournamentGroup group) {
         return Objects.requireNonNull(zSetOperations.reverseRangeWithScores(group.getID().toString(), 0, 20))
                 .stream()
                         .map(e ->
@@ -160,5 +161,90 @@ public class TournamentService implements TournamentServiceInterface{
         tournamentRankInGroupRepository.save(ranking);
         return true;
     }
+
+    @Override
+    public OneLevelProgressResponse claimReward(Tournament tournament, User user) {
+        Optional<TournamentRankInGroup> ranking = tournamentRankInGroupRepository.findByUserAndGroup_Tournament(user, tournament);
+        if (ranking.get().getClaimStatus() == true) {
+            throw new RuntimeException("Reward is already claimed");
+        }
+        Integer rank = ranking.get().getFinalRank();
+        Integer reward = 0;
+
+        if (rank == 1) {
+            reward = 10000;
+        }
+
+        else if (rank == 2) {
+            reward = 5000;
+        }
+
+        else if (rank == 3) {
+            reward = 3000;
+        }
+
+        else if (rank > 3 && rank < 11) {
+            reward = 1000;
+        }
+
+        ranking.get().setClaimStatus(true);
+        tournamentRankInGroupRepository.save(ranking.get());
+
+        user.setCurrentCoins(user.getCurrentCoins() + reward);
+        userRepository.save(user);
+
+        OneLevelProgressResponse response = new OneLevelProgressResponse(user.getCurrentLevel(), user.getCurrentCoins());
+        return response;
+    }
+
+    @Override
+    public Boolean startTournament() {
+        Optional<Tournament> latestTournament = tournamentRepository.findFirstByOrderByIdDesc();
+        Tournament tournament = latestTournament.get();
+
+        if (latestTournament.isPresent() == true) {
+            if (tournament.getEndDate().isAfter(LocalDateTime.now()))
+                throw new RuntimeException("A tournament is currently continues");
+            Set<String> redisKeys = redisTemplate.keys("*");
+
+            assert redisKeys != null;
+            List<Long> groupsIds = new ArrayList<>();
+            for (String data : redisKeys) {
+                groupsIds.add(Long.parseLong(data));
+            }
+
+            for (Long groupId : groupsIds) {
+                TournamentGroup group = new TournamentGroup();
+                group.setID(groupId);
+                List<CurrentLeaderboardStatusResponse> leaderboardResponses = listLeaderboard(group);
+                int rank = 0;
+
+                for (CurrentLeaderboardStatusResponse leaderboardResponse : leaderboardResponses) {
+                    User user = new User();
+                    user.setID(leaderboardResponse.getID());
+                    Optional<TournamentRankInGroup> ranking = tournamentRankInGroupRepository.findByUserAndGroup_Tournament(user, tournament);
+
+                    ranking.get().setFinalRank(rank+1);
+                    tournamentRankInGroupRepository.save(ranking.get());
+                    rank = rank + 1;
+                }
+            }
+
+            redisTemplate.delete(Objects.requireNonNull(redisTemplate.keys("*")));
+            Tournament newTournament = new Tournament();
+            newTournament.setStartDate(tournament.getEndDate().plusHours(4));
+            newTournament.setEndDate(tournament.getEndDate().plusHours(24));
+            tournamentRepository.save(newTournament);
+            return true;
+        }
+        Tournament newTournament = new Tournament();
+        LocalDateTime now = LocalDateTime.now();
+        newTournament.setStartDate(now);
+        newTournament.setEndDate(now.plusHours(20));
+        tournamentRepository.save(newTournament);
+
+        return true;
+    }
+
 
 }

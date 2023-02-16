@@ -4,6 +4,7 @@ import com.dreamGames.rowMatchBackend.model.Tournament;
 import com.dreamGames.rowMatchBackend.model.TournamentGroup;
 import com.dreamGames.rowMatchBackend.model.User;
 import com.dreamGames.rowMatchBackend.responses.CurrentRankResponse;
+import com.dreamGames.rowMatchBackend.responses.OneLevelProgressResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,4 +26,9 @@ public interface TournamentServiceInterface {
     CurrentRankResponse getRankInGivenTournament(Tournament tournament, User user);
 
     Boolean updateUserActiveTournamentRanking(User user);
+
+    OneLevelProgressResponse claimReward(Tournament tournament, User user);
+
+    Boolean startTournament();
+
 }

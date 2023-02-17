@@ -52,7 +52,7 @@ public class TournamentService implements TournamentServiceInterface{
 
     @Override
     public Tournament getLatestTournament() {
-        Optional<Tournament> lastTournament = tournamentRepository.findFirstByOrderByIdDesc();
+        Optional<Tournament> lastTournament = tournamentRepository.findFirstByOrderByIDDesc();
 
         if (lastTournament.isPresent() == true) {
             Tournament tournament = lastTournament.get();
@@ -64,8 +64,8 @@ public class TournamentService implements TournamentServiceInterface{
     }
 
     @Override
-    public List<?> enterTournament(User user, Tournament tournament) {
-
+    public List<CurrentLeaderboardStatusResponse> enterTournament(User newUser, Tournament tournament) {
+        User user = userRepository.findByUsername(newUser.getUsername());
         if (waitingTournament(user) == true)
             throw new RuntimeException("User has a not claimed tournament reward!");
 
@@ -85,6 +85,8 @@ public class TournamentService implements TournamentServiceInterface{
             }
 
             user.setCurrentCoins(currentCoins - 1000);
+            userRepository.save(user);
+
             TournamentRankInGroup userRankingInGroup = new TournamentRankInGroup(user, newGroup, false, 0);
             tournamentRankInGroupRepository.save(userRankingInGroup);
             newGroup.setSize(newGroup.getSize() + 1);
@@ -108,15 +110,16 @@ public class TournamentService implements TournamentServiceInterface{
 
     @Override
     public Boolean waitingTournament(User user) {
-        Optional<TournamentRankInGroup> ranking = tournamentRankInGroupRepository.findByUserAndClaimStatusAndFinalRankBetween(false, user, 1, 10);
+        userRepository.save(user);
+        Optional<TournamentRankInGroup> ranking = tournamentRankInGroupRepository.findByUserAndClaimStatusAndFinalRankBetween( user, false,1, 10);
         if (ranking.isEmpty()) {
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     @Override
-    public List<?> putLeaderboard(TournamentGroup group, User user, Integer score) {
+    public List<CurrentLeaderboardStatusResponse> putLeaderboard(TournamentGroup group, User user, Integer score) {
         UserTuple tuple = new UserTuple(user.getID(), user.getUsername());
         zSetOperations.add(group.getID().toString(), tuple, score);
         return listLeaderboard(group);
@@ -148,11 +151,13 @@ public class TournamentService implements TournamentServiceInterface{
     }
 
     @Override
-    public Boolean updateUserActiveTournamentRanking(User user) {
+    public Boolean updateUserActiveTournamentRanking(User newUser) {
         Tournament tournament = getLatestTournament();
+        User user = userRepository.findByUsername(newUser.getUsername());
+        userRepository.save(user);
         Optional<TournamentRankInGroup> getRanking = tournamentRankInGroupRepository.findByUserAndGroup_Tournament(user, tournament);
         if (getRanking.isEmpty())
-            throw new RuntimeException("No active tournaments!");
+            return false;
 
         TournamentRankInGroup ranking = getRanking.get();
         ranking.setFinalScore(ranking.getFinalScore() + 1);
@@ -199,13 +204,14 @@ public class TournamentService implements TournamentServiceInterface{
 
     @Override
     public Boolean startTournament() {
-        Optional<Tournament> latestTournament = tournamentRepository.findFirstByOrderByIdDesc();
-        Tournament tournament = latestTournament.get();
+        Optional<Tournament> latestTournament = tournamentRepository.findFirstByOrderByIDDesc();
+
 
         if (latestTournament.isPresent() == true) {
-            if (tournament.getEndDate().isAfter(LocalDateTime.now()))
-                throw new RuntimeException("A tournament is currently continues");
+            if (latestTournament.get().getEndDate().isAfter(LocalDateTime.now()))
+                return false;
             Set<String> redisKeys = redisTemplate.keys("*");
+            Tournament tournament = latestTournament.get();
 
             assert redisKeys != null;
             List<Long> groupsIds = new ArrayList<>();
@@ -245,6 +251,4 @@ public class TournamentService implements TournamentServiceInterface{
 
         return true;
     }
-
-
 }

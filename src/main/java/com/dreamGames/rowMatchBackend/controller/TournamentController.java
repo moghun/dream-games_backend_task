@@ -59,7 +59,7 @@ public class TournamentController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    @PostMapping(value = "/GetRankRequest ")
+    @PostMapping(value = "/GetRankRequest")
     public ResponseEntity<?> rank(@Valid @RequestBody RankRequest tournamentRankRequest) {
         Optional<Tournament> tournament = tournamentService.getTournament(tournamentRankRequest.getTournament());
 

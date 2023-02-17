@@ -17,23 +17,21 @@ public class TournamentRankInGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long ID;
-
-    @ManyToOne(cascade = CascadeType.MERGE)
-    @JoinColumn(name = "userID", referencedColumnName = "ID")
+    @ManyToOne()
+    @JoinColumn(name = "user_id", referencedColumnName = "ID")
     private User user;
 
-    @ManyToOne()
-    @JoinColumn(name = "tournamentGroupID", referencedColumnName = "ID")
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "tournament_id", referencedColumnName = "ID")
     private TournamentGroup group;
     private Boolean claimStatus;
-    private Integer currentScore;
+    private Integer finalScore;
     private Integer finalRank;
 
-    public TournamentRankInGroup(User user, TournamentGroup group, Boolean claimStatus, Integer currentScore) {
+    public TournamentRankInGroup(User user, TournamentGroup group, Boolean claimStatus, Integer finalScore) {
         this.user = user;
         this.group = group;
         this.claimStatus = claimStatus;
-        this.currentScore = currentScore;
-        this.finalRank = -1;
+        this.finalScore = finalScore;
     }
 }

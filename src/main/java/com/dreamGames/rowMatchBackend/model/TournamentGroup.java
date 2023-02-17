@@ -16,8 +16,8 @@ public class TournamentGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long ID;
-    @ManyToOne()
-    @JoinColumn(name = "tournamentID", referencedColumnName = "ID")
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "tournament_id", referencedColumnName = "ID")
     private Tournament tournament;
     private Integer size;
     private Boolean filled;

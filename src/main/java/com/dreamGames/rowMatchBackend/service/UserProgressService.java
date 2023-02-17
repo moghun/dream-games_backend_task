@@ -51,10 +51,4 @@ public class UserProgressService implements UserProgressServiceInterface{
         return Optional.of(userRepository.save(updatedUser));
     }
 
-    @Override
-    public Optional<User> tournamentUserProgress(User user) {
-/*        user.setCurrentLevel(updatedLevel);
-        user.setCurrentCoins(updatedCoin);*/
-        return Optional.of(userRepository.save(user));
-    }
 }

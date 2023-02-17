@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface TournamentRankInGroupRepository extends JpaRepository<TournamentRankInGroup, Long> {
-    public Optional<TournamentRankInGroup> findByUserAndClaimStatusAndFinalRankBetween(Boolean didClaim, User user,Integer startRank, Integer endRank);
+    public Optional<TournamentRankInGroup> findByUserAndClaimStatusAndFinalRankBetween(User user, Boolean claimStatus, Integer startRank, Integer endRank);
     public Optional<TournamentRankInGroup> findByUserAndGroup_Tournament(User user, Tournament tournament);
 
 }

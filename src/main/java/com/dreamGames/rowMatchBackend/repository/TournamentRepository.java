@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface TournamentRepository extends JpaRepository<Tournament, Long> {
-    public Optional<Tournament> findFirstByOrderByIdDesc();
+    public Optional<Tournament> findFirstByOrderByIDDesc();
 }

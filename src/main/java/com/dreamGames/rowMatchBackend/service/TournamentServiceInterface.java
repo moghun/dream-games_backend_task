@@ -25,7 +25,7 @@ public interface TournamentServiceInterface {
 
     CurrentRankResponse getRankInGivenTournament(Tournament tournament, User user);
 
-    Boolean updateUserActiveTournamentRanking(User user);
+    Boolean updateUserProgressRealtime(User user);
 
     OneLevelProgressResponse claimReward(Tournament tournament, User user);
 

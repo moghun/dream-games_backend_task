@@ -40,25 +40,6 @@ public class TournamentController {
         }
     }
 
-    @PostMapping(value = "/ClaimRewardRequest")
-    public ResponseEntity<?> claim(@Valid @RequestBody ClaimRequest tournamentID) {
-        Optional<Tournament> tournament = tournamentService.getTournament(tournamentID.getTournament());
-
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        if (tournament.isPresent() == true) {
-            OneLevelProgressResponse response;
-            try {
-                response = tournamentService.claimReward(tournament.get(), user);
-            }
-            catch (RuntimeException e) {
-                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-            }
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    }
-
     @PostMapping(value = "/GetRankRequest")
     public ResponseEntity<?> rank(@Valid @RequestBody RankRequest tournamentRankRequest) {
         Optional<Tournament> tournament = tournamentService.getTournament(tournamentRankRequest.getTournament());
@@ -88,6 +69,25 @@ public class TournamentController {
         List<CurrentLeaderboardStatusResponse> leaderboard = tournamentService.listLeaderboard(group.get());
 
         return new ResponseEntity<>(leaderboard, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/ClaimRewardRequest")
+    public ResponseEntity<?> claim(@Valid @RequestBody ClaimRequest tournamentID) {
+        Optional<Tournament> tournament = tournamentService.getTournament(tournamentID.getTournament());
+
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (tournament.isPresent() == true) {
+            OneLevelProgressResponse response;
+            try {
+                response = tournamentService.claimReward(tournament.get(), user);
+            }
+            catch (RuntimeException e) {
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping("/ManuelTournamentStartRequest")

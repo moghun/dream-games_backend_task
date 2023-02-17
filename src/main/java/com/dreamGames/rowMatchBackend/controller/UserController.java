@@ -23,8 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
-
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
@@ -54,7 +52,7 @@ public class UserController {
 
         User updatedUser = userService.oneLevelUserProgress(user).get();
         try{
-            Boolean x = tournamentService.updateUserActiveTournamentRanking(user);
+            Boolean x = tournamentService.updateUserProgressRealtime(user);
             System.out.println(x);
         }
         catch (RuntimeException e) {System.out.println(e);}

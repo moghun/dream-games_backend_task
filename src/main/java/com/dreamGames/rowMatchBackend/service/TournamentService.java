@@ -151,7 +151,7 @@ public class TournamentService implements TournamentServiceInterface{
     }
 
     @Override
-    public Boolean updateUserActiveTournamentRanking(User newUser) {
+    public Boolean updateUserProgressRealtime(User newUser) {
         Tournament tournament = getLatestTournament();
         User user = userRepository.findByUsername(newUser.getUsername());
         userRepository.save(user);

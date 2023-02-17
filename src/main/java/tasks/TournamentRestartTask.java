@@ -22,5 +22,6 @@ public class TournamentRestartTask {
     @Scheduled(cron = "0 20 * * * ?")
     public void startTournament() {
         tournamentService.startTournament();
+        System.out.println("Scheduler is started!");
     }
 }

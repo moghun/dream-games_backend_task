@@ -53,7 +53,6 @@ public class UserController {
         User updatedUser = userService.oneLevelUserProgress(user).get();
         try{
             Boolean x = tournamentService.updateUserProgressRealtime(user);
-            System.out.println(x);
         }
         catch (RuntimeException e) {System.out.println(e);}
         OneLevelProgressResponse response = new OneLevelProgressResponse();

@@ -56,6 +56,9 @@ public class TournamentService implements TournamentServiceInterface{
 
         if (lastTournament.isPresent() == true) {
             Tournament tournament = lastTournament.get();
+            System.out.println(tournament.getStartDate());
+            System.out.println(tournament.getEndDate());
+
             if (tournament.getStartDate().isBefore(LocalDateTime.now()) && tournament.getEndDate().isAfter(LocalDateTime.now())) {
                 return tournament;
             }
@@ -144,10 +147,21 @@ public class TournamentService implements TournamentServiceInterface{
         if (ranking.isEmpty() == true)
             throw new RuntimeException("Did not attend to a tournament!");
 
-        Long group = ranking.get().getGroup().getID();
-        Long rank = zSetOperations.reverseRank(group.toString(), new UserTuple(user.getID(), user.getUsername()));
+        Tournament currentTournament = ranking.get().getGroup().getTournament();
+        Tournament latestTournament = getLatestTournament();
 
-        return new CurrentRankResponse(group, rank.intValue());
+        Long group = ranking.get().getGroup().getID();
+
+        if (currentTournament.getID() == latestTournament.getID())
+        {
+            Long rank = zSetOperations.reverseRank(group.toString(), new UserTuple(user.getID(), user.getUsername()));
+            return new CurrentRankResponse(group, rank.intValue());
+        }
+
+        else{
+            Integer finalRank = ranking.get().getFinalRank();
+            return new CurrentRankResponse(group, finalRank);
+        }
     }
 
     @Override
@@ -168,7 +182,9 @@ public class TournamentService implements TournamentServiceInterface{
     }
 
     @Override
-    public OneLevelProgressResponse claimReward(Tournament tournament, User user) {
+    public OneLevelProgressResponse claimReward(Tournament tournament, User requestingUser) {
+        User user = userRepository.findByUsername(requestingUser.getUsername());
+        userRepository.save(user);
         Optional<TournamentRankInGroup> ranking = tournamentRankInGroupRepository.findByUserAndGroup_Tournament(user, tournament);
         if (ranking.get().getClaimStatus() == true) {
             throw new RuntimeException("Reward is already claimed");
@@ -213,6 +229,7 @@ public class TournamentService implements TournamentServiceInterface{
             Set<String> redisKeys = redisTemplate.keys("*");
             Tournament tournament = latestTournament.get();
 
+
             assert redisKeys != null;
             List<Long> groupsIds = new ArrayList<>();
             for (String data : redisKeys) {
@@ -220,22 +237,20 @@ public class TournamentService implements TournamentServiceInterface{
             }
 
             for (Long groupId : groupsIds) {
-                TournamentGroup group = new TournamentGroup();
-                group.setID(groupId);
+                TournamentGroup group = tournamentGroupRepository.findById(groupId).get();
                 List<CurrentLeaderboardStatusResponse> leaderboardResponses = listLeaderboard(group);
                 int rank = 0;
 
                 for (CurrentLeaderboardStatusResponse leaderboardResponse : leaderboardResponses) {
                     User user = new User();
                     user.setID(leaderboardResponse.getID());
-                    Optional<TournamentRankInGroup> ranking = tournamentRankInGroupRepository.findByUserAndGroup_Tournament(user, tournament);
+                    TournamentRankInGroup ranking = tournamentRankInGroupRepository.findByUserAndGroup_Tournament(user, tournament).get();
 
-                    ranking.get().setFinalRank(rank+1);
-                    tournamentRankInGroupRepository.save(ranking.get());
+                    ranking.setFinalRank(rank+1);
+                    tournamentRankInGroupRepository.save(ranking);
                     rank = rank + 1;
                 }
             }
-
             redisTemplate.delete(Objects.requireNonNull(redisTemplate.keys("*")));
             Tournament newTournament = new Tournament();
             newTournament.setStartDate(tournament.getEndDate().plusHours(4));

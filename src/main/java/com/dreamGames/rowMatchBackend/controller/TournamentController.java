@@ -42,9 +42,10 @@ public class TournamentController {
 
     @PostMapping(value = "/GetRankRequest")
     public ResponseEntity<?> rank(@Valid @RequestBody RankRequest tournamentRankRequest) {
+
         Optional<Tournament> tournament = tournamentService.getTournament(tournamentRankRequest.getTournament());
 
-        Optional<User> user = userService.findUser(tournamentRankRequest.getID());
+        Optional<User> user = userService.findUser(tournamentRankRequest.getUserID());
 
         if (user.isPresent() == true && tournament.isPresent() == true) {
             CurrentRankResponse tournamentRankResponse;
@@ -79,8 +80,9 @@ public class TournamentController {
 
         if (tournament.isPresent() == true) {
             OneLevelProgressResponse response;
+            Tournament tournament_new = tournament.get();
             try {
-                response = tournamentService.claimReward(tournament.get(), user);
+                response = tournamentService.claimReward(tournament_new, user);
             }
             catch (RuntimeException e) {
                 return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);

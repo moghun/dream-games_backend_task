@@ -153,11 +153,11 @@ class RowMatchBackendApplicationTests {
 
 	@Test
 	public void testCase1() throws Exception {
-		CreateUserResponse user1 = CreateUserRequest("DreamGames1", "1234");
-		AuthenticationResponse jwt1 = AuthenticateUserRequest("DreamGames1", "1234");
+		CreateUserResponse user1 = CreateUserRequest("Melih", "1234");
+		AuthenticationResponse jwt1 = AuthenticateUserRequest("Melih", "1234");
 
-		CreateUserResponse user2 = CreateUserRequest("JavaTechie1", "fadsfas2123dfasf");
-		AuthenticationResponse jwt2 = AuthenticateUserRequest("JavaTechie1", "fadsfas2123dfasf");
+		CreateUserResponse user2 = CreateUserRequest("Ahmet", "fadsfas2123dfasf");
+		AuthenticationResponse jwt2 = AuthenticateUserRequest("Ahmet", "fadsfas2123dfasf");
 
 		Integer ct = 0;
 		while (ct != 30) {

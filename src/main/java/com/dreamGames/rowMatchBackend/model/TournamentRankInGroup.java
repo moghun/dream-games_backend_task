@@ -33,5 +33,6 @@ public class TournamentRankInGroup {
         this.group = group;
         this.claimStatus = claimStatus;
         this.finalScore = finalScore;
+        this.finalRank = 0;
     }
 }

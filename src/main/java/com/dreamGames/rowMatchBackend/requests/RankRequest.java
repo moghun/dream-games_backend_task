@@ -10,6 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RankRequest {
-    private Long ID;
+    private Long userID;
     private Long tournament;
 }

@@ -19,7 +19,7 @@ public class TournamentRestartTask {
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    @Scheduled(cron = "0 20 * * * ?")
+    @Scheduled(cron = "0 0 * * *")
     public void startTournament() {
         tournamentService.startTournament();
         System.out.println("Scheduler is started!");
